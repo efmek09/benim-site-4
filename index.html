@@ -1,23 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Mini Runner</title>
+<title>Runner Game</title>
 <style>
-body { margin:0; overflow:hidden; background:black; }
+body { margin:0; overflow:hidden; background:#111; }
+
 #player {
   width:50px; height:50px;
   background:red;
   position:absolute;
   bottom:20px;
-  left:100px;
+  left:150px;
+  transition: left 0.2s;
 }
+
 .obstacle {
   width:40px; height:40px;
   background:yellow;
   position:absolute;
   bottom:20px;
-  right:-50px;
 }
+
+.lane1 { left:100px; }
+.lane2 { left:200px; }
+.lane3 { left:300px; }
+
 </style>
 </head>
 <body>
@@ -26,21 +33,41 @@ body { margin:0; overflow:hidden; background:black; }
 
 <script>
 let player = document.getElementById("player");
+let lane = 2; // 1-2-3
 let jumping = false;
 let score = 0;
+
+function updateLane() {
+  player.style.left = (lane * 100) + "px";
+}
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowLeft" && lane > 1) {
+    lane--;
+    updateLane();
+  }
+  if (e.key === "ArrowRight" && lane < 3) {
+    lane++;
+    updateLane();
+  }
+  if (e.key === "ArrowUp") {
+    jump();
+  }
+});
 
 function jump() {
   if (jumping) return;
   jumping = true;
+
   let up = setInterval(() => {
-    let bottom = parseInt(window.getComputedStyle(player).bottom);
+    let bottom = parseInt(getComputedStyle(player).bottom);
     if (bottom >= 150) clearInterval(up);
     player.style.bottom = bottom + 5 + "px";
   }, 20);
 
   setTimeout(() => {
     let down = setInterval(() => {
-      let bottom = parseInt(window.getComputedStyle(player).bottom);
+      let bottom = parseInt(getComputedStyle(player).bottom);
       if (bottom <= 20) {
         clearInterval(down);
         jumping = false;
@@ -50,36 +77,41 @@ function jump() {
   }, 300);
 }
 
-document.addEventListener("keydown", jump);
-
 function createObstacle() {
   let obstacle = document.createElement("div");
   obstacle.classList.add("obstacle");
+
+  let randomLane = Math.floor(Math.random() * 3) + 1;
+  obstacle.classList.add("lane" + randomLane);
+
   document.body.appendChild(obstacle);
 
   let move = setInterval(() => {
-    let right = parseInt(window.getComputedStyle(obstacle).right);
+    let bottom = parseInt(getComputedStyle(obstacle).bottom);
+    obstacle.style.bottom = bottom + 5 + "px";
 
-    if (right > window.innerWidth + 50) {
+    let playerLeft = parseInt(getComputedStyle(player).left);
+
+    if (
+      playerLeft === (randomLane * 100) &&
+      bottom < 80 && bottom > 20 &&
+      !jumping
+    ) {
+      alert("Game Over! Skor: " + score);
+      location.reload();
+    }
+
+    if (bottom > window.innerHeight) {
       obstacle.remove();
       clearInterval(move);
       score++;
       console.log("Skor:", score);
     }
 
-    obstacle.style.right = right + 5 + "px";
-
-    let playerBottom = parseInt(window.getComputedStyle(player).bottom);
-
-    if (right > window.innerWidth - 150 && playerBottom < 60) {
-      alert("Oyun bitti! Skor: " + score);
-      location.reload();
-    }
-
   }, 20);
 }
 
-setInterval(createObstacle, 2000);
+setInterval(createObstacle, 1500);
 </script>
 
 </body>
