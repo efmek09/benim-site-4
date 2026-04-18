@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Mini Runner</title>
+<style>
+body { margin:0; overflow:hidden; background:black; }
+#player {
+  width:50px; height:50px;
+  background:red;
+  position:absolute;
+  bottom:20px;
+  left:100px;
+}
+.obstacle {
+  width:40px; height:40px;
+  background:yellow;
+  position:absolute;
+  bottom:20px;
+  right:-50px;
+}
+</style>
+</head>
+<body>
+
+<div id="player"></div>
+
+<script>
+let player = document.getElementById("player");
+let jumping = false;
+let score = 0;
+
+function jump() {
+  if (jumping) return;
+  jumping = true;
+  let up = setInterval(() => {
+    let bottom = parseInt(window.getComputedStyle(player).bottom);
+    if (bottom >= 150) clearInterval(up);
+    player.style.bottom = bottom + 5 + "px";
+  }, 20);
+
+  setTimeout(() => {
+    let down = setInterval(() => {
+      let bottom = parseInt(window.getComputedStyle(player).bottom);
+      if (bottom <= 20) {
+        clearInterval(down);
+        jumping = false;
+      }
+      player.style.bottom = bottom - 5 + "px";
+    }, 20);
+  }, 300);
+}
+
+document.addEventListener("keydown", jump);
+
+function createObstacle() {
+  let obstacle = document.createElement("div");
+  obstacle.classList.add("obstacle");
+  document.body.appendChild(obstacle);
+
+  let move = setInterval(() => {
+    let right = parseInt(window.getComputedStyle(obstacle).right);
+
+    if (right > window.innerWidth + 50) {
+      obstacle.remove();
+      clearInterval(move);
+      score++;
+      console.log("Skor:", score);
+    }
+
+    obstacle.style.right = right + 5 + "px";
+
+    let playerBottom = parseInt(window.getComputedStyle(player).bottom);
+
+    if (right > window.innerWidth - 150 && playerBottom < 60) {
+      alert("Oyun bitti! Skor: " + score);
+      location.reload();
+    }
+
+  }, 20);
+}
+
+setInterval(createObstacle, 2000);
+</script>
+
+</body>
+</html>
